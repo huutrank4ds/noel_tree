@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Noel 2025 - Special Gift</title>
+    <style>
+        /* ================= CSS (GIAO DIỆN) ================= */
+        body {
+            margin: 0; padding: 0;
+            background-color: #050505; /* Nền đen quan trọng */
+            overflow: hidden; height: 100vh;
+            font-family: Arial, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+        }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #snowCanvas { z-index: 1; pointer-events: none; }
+        #treeCanvas { z-index: 2; pointer-events: none; }
+
+        /* --- CỤM QUÀ --- */
+        .gift-cluster {
+            position: absolute;
+            bottom: 5%; left: 50%;
+            transform: translateX(-50%);
+            width: 300px; height: 150px;
+            z-index: 10;
+        }
+
+        .gift-box {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .body {
+            width: 100%; height: 100%;
+            position: absolute; bottom: 0; left: 0;
+            box-shadow: 2px 5px 15px rgba(0,0,0,0.5); border-radius: 2px;
+        }
+        .lid {
+            width: 104%; height: 20%;
+            position: absolute; top: 0; left: -2%;
+            border-radius: 2px; z-index: 2;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.5s ease;
+        }
+
+        /* HỘP LỚN (Nền) */
+        .box-kraft-large {
+            width: 140px; height: 90px; bottom: 10px; left: 10px; z-index: 1;
+        }
+        .box-kraft-large .body, .box-kraft-large .lid { background: #e0c097; }
+        .box-kraft-large .ribbon {
+            position: absolute; left: 20%; width: 15px; height: 100%; background: #d32f2f;
+        }
+        .bow-red {
+            position: absolute; top: -10px; left: 20%; transform: translateX(-50%);
+            width: 15px; height: 15px; background: #d32f2f; border-radius: 50%; z-index: 3;
+        }
+
+        /* HỘP NHỎ (Nền) */
+        .box-kraft-small {
+            width: 90px; height: 80px; bottom: 5px; right: 20px; z-index: 3;
+            transform: rotate(5deg);
+        }
+        .box-kraft-small .body, .box-kraft-small .lid { background: #d7ccc8; }
+        .box-kraft-small .ribbon {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            width: 12px; height: 100%; background: #d32f2f;
+        }
+        .pine-branch {
+            position: absolute; top: -5px; right: -5px; width: 30px; height: 10px;
+            background: green; transform: rotate(15deg); border-radius: 5px; z-index: 4;
+        }
+
+        /* HỘP CHÍNH (Caro Đỏ - Click được) */
+        .box-plaid {
+            width: 110px; height: 70px;
+            bottom: 40px; left: 40px; z-index: 2;
+            transform: rotate(-3deg);
+        }
+        .box-plaid .body, .box-plaid .lid {
+            background-color: #b71c1c;
+            /* Vẽ kẻ caro bằng CSS Gradient */
+            background-image:
+                repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.2) 15px),
+                repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.2) 15px);
+        }
+        .box-plaid .ribbon {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            width: 15px; height: 100%;
+            background: linear-gradient(to right, #fdb931, #ffd700, #fdb931);
+        }
+        .bow-gold {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px; background: #ffd700; border-radius: 50%; z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* --- HIỆU ỨNG ANIMATION (BAY & MỞ) --- */
+        .gift-box.center-stage {
+            position: fixed;
+            top: 50% !important; left: 50% !important; bottom: auto !important;
+            transform: translate(-50%, -50%) scale(1.5) rotate(0deg) !important;
+            z-index: 1000 !important;
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .gift-box.open .lid {
+            transform: translateY(-60px) rotate(-15deg); opacity: 0;
+        }
+        .gift-box.open .bow-gold { opacity: 0; }
+
+        /* --- BẢNG LỜI CHÚC --- */
+        .message-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 999;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s;
+        }
+        .message-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .decorative-frame {
+            position: relative; width: 280px; padding: 30px;
+            background: #fff; border-radius: 15px; text-align: center;
+            /* Viền kẹo giáng sinh */
+            border: 12px solid transparent; background-clip: padding-box;
+            background-image: linear-gradient(white, white), 
+                              repeating-linear-gradient(45deg, #ff0000, #ff0000 15px, #ffffff 15px, #ffffff 30px);
+            background-origin: border-box;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            transform: scale(0.8); transition: transform 0.5s;
+        }
+        .message-overlay.show .decorative-frame { transform: scale(1); }
+
+        .msg-content h2 { color: #d32f2f; margin: 0 0 10px 0; }
+        .msg-content p { color: #333; font-size: 16px; margin: 0; line-height: 1.5; }
+        .click-hint { font-size: 10px; color: #999; margin-top: 15px; font-style: italic; }
+
+        /* Đèn nhấp nháy */
+        .lights-string {
+            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            width: 80%; display: flex; justify-content: space-around;
+        }
+        .light {
+            width: 10px; height: 10px; border-radius: 50%;
+            animation: blink 1s infinite alternate;
+        }
+        .light:nth-child(1) { background: red; box-shadow: 0 0 10px red; }
+        .light:nth-child(2) { background: gold; box-shadow: 0 0 10px gold; animation-delay: 0.2s; }
+        .light:nth-child(3) { background: lime; box-shadow: 0 0 10px lime; animation-delay: 0.4s; }
+        .light:nth-child(4) { background: cyan; box-shadow: 0 0 10px cyan; animation-delay: 0.6s; }
+        .light:nth-child(5) { background: red; box-shadow: 0 0 10px red; animation-delay: 0.8s; }
+
+        @keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="snowCanvas"></canvas>
+    <canvas id="treeCanvas"></canvas>
+
+    <div class="gift-cluster">
+        <div class="gift-box box-kraft-large">
+            <div class="lid"><div class="ribbon"></div></div>
+            <div class="body"><div class="ribbon"></div></div>
+            <div class="bow-red"></div>
+        </div>
+
+        <div class="gift-box box-kraft-small">
+            <div class="lid"><div class="ribbon"></div></div>
+            <div class="body"><div class="ribbon"></div></div>
+            <div class="pine-branch"></div>
+        </div>
+
+        <div id="mainGift" class="gift-box box-plaid" onclick="activateGift()">
+            <div class="lid"><div class="ribbon"></div></div>
+            <div class="body"><div class="ribbon"></div></div>
+            <div class="bow-gold"></div>
+        </div>
+    </div>
+
+    <div id="messageOverlay" class="message-overlay" onclick="closeGift()">
+        <div class="decorative-frame">
+            <div class="lights-string">
+                <span class="light"></span><span class="light"></span><span class="light"></span><span class="light"></span><span class="light"></span>
+            </div>
+            <div class="msg-content">
+                <h2>Merry Christmas!</h2>
+                <p>Chúc bé iuuu giáng sinh vui vẻ, xinh đẹp và thật hạnh phúc. 🎄❤️</p>
+                <div class="click-hint">(Chạm để đóng)</div>
+            </div>
+        </div>
+    </div>
+    <script src="snow.js"></script>
+    <script src="tree.js"></script>
+    <script>
+        // --- 1. THÊM HÀM MỞ QUÀ (BẠN ĐANG BỊ THIẾU CÁI NÀY) ---
+        function activateGift() {
+            const gift = document.getElementById('mainGift');
+            const overlay = document.getElementById('messageOverlay');
+            
+            // Bước 1: Bay ra giữa
+            gift.classList.add('center-stage');
+            
+            // Bước 2: Mở nắp sau 1 giây
+            setTimeout(() => { 
+                gift.classList.add('open'); 
+            }, 1000);
+            
+            // Bước 3: Hiện lời chúc sau 1.5 giây
+            setTimeout(() => { 
+                overlay.classList.add('show'); 
+            }, 1500);
+        }
+
+        // --- 2. HÀM ĐÓNG QUÀ (ĐÃ CÓ) ---
+        function closeGift() {
+            const gift = document.getElementById('mainGift');
+            const overlay = document.getElementById('messageOverlay');
+            
+            overlay.classList.remove('show');
+            
+            setTimeout(() => {
+                gift.classList.remove('open');
+                gift.classList.remove('center-stage');
+            }, 300);
+        }
+
+        // --- 3. XỬ LÝ KHI XOAY MÀN HÌNH ---
+        window.addEventListener('resize', () => {
+            // Cập nhật lại kích thước cho canvas nếu cần
+            if(window.snowCanvas) {
+                snowW = snowCanvas.width = window.innerWidth;
+                snowH = snowCanvas.height = window.innerHeight;
+            }
+            if(window.treeCanvas) {
+                treeW = treeCanvas.width = window.innerWidth;
+                treeH = treeCanvas.height = window.innerHeight;
+                // Tính lại tâm cây thông nếu biến này được khai báo global trong tree.js
+                if(typeof config !== 'undefined') {
+                     centerY = (treeH / 2) + (treeH * config.treeHeightRatio / 2) + (treeH * config.yOffsetRatio);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
